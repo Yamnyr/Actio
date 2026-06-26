@@ -1,0 +1,15 @@
+{
+  "name": "actio",
+  "version": "1.0.0",
+  "description": "Actio - Advanced, ultra-ergonomic Todo list and Life Planner.",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}

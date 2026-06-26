@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Actio - Liste de Tâches & Projets Avancés</title>
+  <meta name="description" content="Une application de productivité hautement ergonomique pour gérer vos tâches quotidiennes et vos projets de vie à long terme.">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Ambient background glow elements -->
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-wrapper">
+          <div class="logo-icon">
+            <i data-lucide="check-circle-2"></i>
+          </div>
+          <span class="logo-text">Actio</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-btn active" data-tab="quick">
+          <i data-lucide="zap"></i>
+          <span>Tâches Rapides</span>
+        </button>
+        <button class="nav-btn" data-tab="projects">
+          <i data-lucide="compass"></i>
+          <span>Projets de Vie</span>
+        </button>
+        <button class="nav-btn" data-tab="categories">
+          <i data-lucide="tag"></i>
+          <span>Catégories</span>
+        </button>
+        <button class="nav-btn" data-tab="settings">
+          <i data-lucide="sliders"></i>
+          <span>Paramètres</span>
+        </button>
+      </nav>
+
+      <!-- Sidebar Stats Panel -->
+      <div class="sidebar-stats">
+        <div class="stats-progress-container">
+          <div class="stats-progress-header">
+            <span>Progression Globale</span>
+            <span id="global-progress-percent">0%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div id="global-progress-bar" class="progress-bar-fill" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="stats-counters">
+          <div class="counter-card">
+            <span class="counter-num" id="counter-done">0</span>
+            <span class="counter-label">Terminées</span>
+          </div>
+          <div class="counter-card">
+            <span class="counter-num" id="counter-active">0</span>
+            <span class="counter-label">En cours</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <p class="shortcut-hint"><kbd>N</kbd> nouvelle tâche</p>
+        <p class="shortcut-hint"><kbd>/</kbd> rechercher</p>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top header bar -->
+      <header class="main-header">
+        <div class="header-title-area">
+          <h1 id="view-title">Tâches Rapides</h1>
+          <p id="view-subtitle" class="header-subtitle">Restez concentré sur vos objectifs de la semaine</p>
+        </div>
+
+        <div class="header-actions">
+          <!-- Search box -->
+          <div class="search-box">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" id="search-input" placeholder="Rechercher une tâche... (Appuyez sur /)" autocomplete="off">
+            <button id="clear-search-btn" class="clear-search-btn hidden">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+
+          <!-- Layout Toggle Button -->
+          <button id="btn-toggle-layout" class="btn-icon-bg" title="Changer l'affichage (Grille / Liste)">
+            <i data-lucide="layout-grid"></i>
+          </button>
+
+          <!-- Quick Stat Circle -->
+          <div class="quick-stat-ring">
+            <svg class="progress-ring" width="40" height="40">
+              <circle class="progress-ring-circle-bg" stroke="rgba(255,255,255,0.05)" stroke-width="3" fill="transparent" r="16" cx="20" cy="20"/>
+              <circle id="header-progress-ring" class="progress-ring-circle" stroke="url(#accent-grad)" stroke-width="3" fill="transparent" r="16" cx="20" cy="20"/>
+            </svg>
+            <span class="ring-text" id="header-progress-text">0%</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Category Filter Bar (Only visible in list views) -->
+      <section class="filter-bar" id="category-filters-container">
+        <!-- Rendered dynamically -->
+      </section>
+
+      <!-- Main Dynamic Content Wrapper -->
+      <section class="content-body">
+        
+        <!-- VIEW: QUICK TASKS (Inbox / Weekly) -->
+        <div id="view-quick-container" class="tab-view active">
+          <!-- Quick add task form -->
+          <div class="quick-add-card">
+            <form id="quick-add-form" class="quick-add-form">
+              <div class="quick-add-main">
+                <input type="text" id="quick-add-input" placeholder="Ajouter une tâche rapide pour cette semaine... (Entrée pour valider)" required autocomplete="off">
+              </div>
+              <div class="quick-add-options">
+                <select id="quick-add-category" class="add-select" title="Catégorie">
+                  <!-- Dynamic options -->
+                </select>
+                <select id="quick-add-priority" class="add-select" title="Priorité">
+                  <option value="low">Priorité Basse</option>
+                  <option value="medium" selected>Priorité Moyenne</option>
+                  <option value="high">Priorité Haute</option>
+                </select>
+                <button type="submit" class="btn-primary-glow btn-add-task">
+                  <i data-lucide="plus"></i>
+                  <span>Ajouter</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Grouped Lists (Today, Week, Later) -->
+          <div class="tasks-groups-container">
+            <div class="task-group-column" data-group="today">
+              <h3 class="group-title"><i data-lucide="calendar-range" class="group-icon color-today"></i> Aujourd'hui <span class="group-count" id="count-today">0</span></h3>
+              <div class="task-list-dropzone" id="list-today" data-status="today">
+                <!-- Tasks render here -->
+              </div>
+            </div>
+
+            <div class="task-group-column" data-group="week">
+              <h3 class="group-title"><i data-lucide="calendar-days" class="group-icon color-week"></i> Cette Semaine <span class="group-count" id="count-week">0</span></h3>
+              <div class="task-list-dropzone" id="list-week" data-status="week">
+                <!-- Tasks render here -->
+              </div>
+            </div>
+
+            <div class="task-group-column" data-group="later">
+              <h3 class="group-title"><i data-lucide="calendar" class="group-icon color-later"></i> Plus Tard <span class="group-count" id="count-later">0</span></h3>
+              <div class="task-list-dropzone" id="list-later" data-status="later">
+                <!-- Tasks render here -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW: LIFE PROJECTS -->
+        <div id="view-projects-container" class="tab-view">
+          <div class="projects-actions-header">
+            <p class="description-text">Les projets de vie structurent vos objectifs de long terme (ex: Reconversion professionnelle, Voyager au Japon). Ils permettent d'ajouter des sous-tâches détaillées générées par IA.</p>
+            <button id="btn-open-new-project-modal" class="btn-primary-glow">
+              <i data-lucide="folder-plus"></i>
+              <span>Créer un Projet de Vie</span>
+            </button>
+          </div>
+
+          <!-- Projects grid -->
+          <div class="projects-grid" id="projects-grid-container">
+            <!-- Dynamic projects cards -->
+          </div>
+        </div>
+
+        <!-- VIEW: CATEGORIES MANAGEMENT -->
+        <div id="view-categories-container" class="tab-view">
+          <div class="category-manager-layout">
+            <div class="category-creator-card">
+              <h3>Créer une Catégorie</h3>
+              <form id="category-create-form" class="standard-form">
+                <div class="form-group">
+                  <label for="new-cat-name">Nom de la catégorie</label>
+                  <input type="text" id="new-cat-name" required placeholder="Ex: Professionnel, Sport, Créativité..." autocomplete="off">
+                </div>
+                <div class="form-group">
+                  <label>Couleur thématique</label>
+                  <div class="color-palette-picker" id="color-palette">
+                    <!-- Dynamic colors -->
+                  </div>
+                </div>
+                <button type="submit" class="btn-primary-glow w-full">
+                  <i data-lucide="plus-circle"></i>
+                  <span>Créer la Catégorie</span>
+                </button>
+              </form>
+            </div>
+            
+            <div class="categories-list-wrapper">
+              <h3>Vos Catégories Actives</h3>
+              <div class="categories-list-grid" id="categories-list-container">
+                <!-- Categories render here -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW: SETTINGS -->
+        <div id="view-settings-container" class="tab-view">
+          <div class="settings-grid">
+            <div class="settings-card">
+              <h3><i data-lucide="sparkles" class="card-icon color-ai"></i> Intelligence Artificielle (Gemini)</h3>
+              <p class="card-text">L'application peut générer automatiquement des étapes détaillées (sous-tâches) pour vos projets ou objectifs en s'appuyant sur l'intelligence artificielle de Google Gemini.</p>
+              
+              <div class="form-group mt-4">
+                <label for="gemini-key-input">Clé d'API Gemini (Gratuite)</label>
+                <div class="api-key-input-wrapper">
+                  <input type="password" id="gemini-key-input" placeholder="AIzaSy...">
+                  <button type="button" id="toggle-key-visibility" class="btn-icon" title="Afficher/Masquer la clé">
+                    <i data-lucide="eye"></i>
+                  </button>
+                </div>
+                <p class="input-helper-text">Votre clé est stockée uniquement en local dans votre navigateur. Vous pouvez en obtenir une gratuitement sur la console Google AI Studio.</p>
+              </div>
+
+              <div class="api-status-badge success hidden" id="gemini-status-success">
+                <i data-lucide="check-circle-2"></i> Clé enregistrée avec succès. Mode IA disponible.
+              </div>
+              <div class="api-status-badge warning" id="gemini-status-local">
+                <i data-lucide="info"></i> Mode Local Actif. Les sous-tâches seront générées à partir de modèles locaux prédéfinis.
+              </div>
+
+              <div class="form-actions mt-4">
+                <button id="save-settings-btn" class="btn-primary-glow">
+                  <i data-lucide="save"></i> Enregistrer les Paramètres
+                </button>
+              </div>
+            </div>
+
+            <div class="settings-card">
+              <h3><i data-lucide="database" class="card-icon color-danger"></i> Gestion des Données</h3>
+              <p class="card-text font-sm">Toutes vos données sont stockées localement dans le stockage du navigateur (`localStorage`). Vous pouvez exporter ou réinitialiser l'application.</p>
+              
+              <div class="data-actions-grid mt-4">
+                <button id="btn-export-data" class="btn-secondary">
+                  <i data-lucide="download"></i> Exporter mes Données
+                </button>
+                <button id="btn-import-data" class="btn-secondary">
+                  <i data-lucide="upload"></i> Importer des Données
+                </button>
+                <input type="file" id="import-data-file" accept=".json" class="hidden">
+              </div>
+
+              <div class="separator-line"></div>
+
+              <button id="btn-reset-app" class="btn-danger-outline">
+                <i data-lucide="trash-2"></i> Réinitialiser l'Application
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL: ADD/EDIT DETAILED TODO/PROJECT -->
+  <div id="todo-details-modal" class="modal-overlay">
+    <div class="modal-card modal-large glass-card">
+      <div class="modal-header">
+        <h2 id="modal-todo-title-display">Détail de la tâche</h2>
+        <button class="btn-icon close-modal-btn" data-modal="todo-details-modal">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <form id="todo-details-form" class="modal-form">
+          <input type="hidden" id="modal-todo-id">
+          
+          <div class="form-group">
+            <label for="modal-todo-title">Titre</label>
+            <input type="text" id="modal-todo-title" required placeholder="Faire quelque chose de grand..." autocomplete="off">
+          </div>
+
+          <div class="form-row-3">
+            <div class="form-group">
+              <label for="modal-todo-category">Catégorie</label>
+              <select id="modal-todo-category">
+                <!-- Dynamic categories -->
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="modal-todo-priority">Priorité</label>
+              <select id="modal-todo-priority">
+                <option value="low">Basse</option>
+                <option value="medium">Moyenne</option>
+                <option value="high">Haute</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="modal-todo-status">Statut</label>
+              <select id="modal-todo-status">
+                <option value="pending">En cours</option>
+                <option value="completed">Terminé</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row-2" id="modal-row-dates">
+            <div class="form-group">
+              <label for="modal-todo-type">Type de tâche</label>
+              <select id="modal-todo-type">
+                <option value="quick">Tâche Rapide (Semaine)</option>
+                <option value="project">Projet de Vie (Long Terme)</option>
+              </select>
+            </div>
+            <div class="form-group" id="modal-todo-due-container">
+              <label for="modal-todo-due">Planification</label>
+              <select id="modal-todo-due">
+                <option value="today">Aujourd'hui</option>
+                <option value="week" selected>Cette Semaine</option>
+                <option value="later">Plus Tard</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="modal-todo-desc">Description / Notes</label>
+            <textarea id="modal-todo-desc" rows="3" placeholder="Ajouter des notes, des liens ou des précisions..."></textarea>
+          </div>
+          
+          <!-- Subtasks section -->
+          <div class="modal-subtasks-section">
+            <div class="subtasks-section-header">
+              <h3>Sous-tâches & Étapes (<span id="subtasks-completion-label">0/0</span>)</h3>
+              <button type="button" id="btn-trigger-ai-gen" class="btn-ai-glow">
+                <i data-lucide="sparkles"></i>
+                <span>Générer par IA</span>
+              </button>
+            </div>
+
+            <!-- Subtask progress bar -->
+            <div class="progress-bar-bg mb-3">
+              <div id="modal-subtasks-progress" class="progress-bar-fill" style="width: 0%"></div>
+            </div>
+
+            <!-- Subtask list -->
+            <div class="modal-subtask-list" id="modal-subtask-list-container">
+              <!-- Rendered subtasks -->
+            </div>
+
+            <!-- Add subtask manually -->
+            <div class="add-subtask-wrapper mt-2">
+              <input type="text" id="new-subtask-title-input" placeholder="Ajouter une étape manuellement... (Entrée pour ajouter)" autocomplete="off">
+              <button type="button" id="btn-add-subtask-manually" class="btn-icon-bg">
+                <i data-lucide="plus"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" id="btn-delete-todo" class="btn-danger-outline mr-auto">
+              <i data-lucide="trash-2"></i> Supprimer
+            </button>
+            <button type="button" class="btn-secondary close-modal-btn" data-modal="todo-details-modal">Annuler</button>
+            <button type="submit" class="btn-primary-glow">Sauvegarder</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: AI SUBTASK GENERATION CONFIG & WAITING -->
+  <div id="ai-modal" class="modal-overlay">
+    <div class="modal-card modal-medium glass-card text-center">
+      <div class="modal-body p-6">
+        <div class="ai-loading-logo">
+          <i data-lucide="sparkles" class="spin-icon"></i>
+        </div>
+        
+        <h2 id="ai-modal-title" class="gradient-text mt-4">Génération des étapes en cours...</h2>
+        <p id="ai-modal-status" class="description-text mt-2">Analyse du projet et création du plan d'action...</p>
+        
+        <!-- Waiting placeholder animation -->
+        <div class="pulse-bar-wrapper mt-4">
+          <div class="pulse-bar"></div>
+        </div>
+
+        <div class="ai-cancel-wrapper mt-6">
+          <button type="button" id="btn-cancel-ai" class="btn-secondary">Annuler</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SVG Gradients Definition for Progress Circles/Accents -->
+  <svg width="0" height="0" class="hidden-svg">
+    <defs>
+      <linearGradient id="accent-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#6366f1" />
+        <stop offset="100%" stop-color="#a855f7" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <!-- Application scripts -->
+  <script type="module" src="js/state.js"></script>
+  <script type="module" src="js/ai.js"></script>
+  <script type="module" src="js/ui.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
