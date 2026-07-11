@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main # Exécute le déploiement à chaque push sur la branche principale
+  workflow_dispatch: # Permet de déclencher le déploiement manuellement depuis l'interface GitHub
 
 # Autorise les permissions nécessaires pour déployer sur GitHub Pages
 permissions:
