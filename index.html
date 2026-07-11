@@ -253,6 +253,43 @@
             </div>
 
             <div class="settings-card">
+              <h3><i data-lucide="cloud" class="card-icon color-ai"></i> Synchronisation Cloud (GitHub Gist)</h3>
+              <p class="card-text">Synchronisez vos données de manière sécurisée et privée entre vos appareils (PC, mobile) en utilisant un Gist privé sur votre propre compte GitHub.</p>
+              
+              <div class="form-group mt-4">
+                <label for="sync-token-input">Jeton d'accès GitHub (Token PAT)</label>
+                <div class="api-key-input-wrapper">
+                  <input type="password" id="sync-token-input" placeholder="ghp_...">
+                  <button type="button" id="toggle-sync-token-visibility" class="btn-icon" title="Afficher/Masquer le jeton">
+                    <i data-lucide="eye"></i>
+                  </button>
+                </div>
+                <p class="input-helper-text">Créez un jeton classique ou fine-grained avec la permission <code>gists</code> dans les paramètres développeur de votre compte GitHub.</p>
+              </div>
+
+              <div class="form-group">
+                <label for="sync-gist-id-input">ID du Gist de synchro (Rempli automatiquement)</label>
+                <input type="text" id="sync-gist-id-input" placeholder="Laisser vide pour créer un nouveau Gist" autocomplete="off">
+              </div>
+
+              <div class="api-status-badge warning" id="sync-status-idle">
+                <i data-lucide="info"></i> Non configuré. Vos données sont stockées uniquement sur cet appareil.
+              </div>
+              <div class="api-status-badge success hidden" id="sync-status-active">
+                <i data-lucide="refresh-cw"></i> Prêt pour la synchronisation.
+              </div>
+
+              <div class="data-actions-grid mt-4">
+                <button id="btn-save-sync-creds" class="btn-secondary">
+                  <i data-lucide="save"></i> Enregistrer
+                </button>
+                <button id="btn-trigger-sync" class="btn-primary-glow">
+                  <i data-lucide="cloud-lightning"></i> Synchroniser
+                </button>
+              </div>
+            </div>
+
+            <div class="settings-card">
               <h3><i data-lucide="database" class="card-icon color-danger"></i> Gestion des Données</h3>
               <p class="card-text font-sm">Toutes vos données sont stockées localement dans le stockage du navigateur (`localStorage`). Vous pouvez exporter ou réinitialiser l'application.</p>
               

@@ -480,6 +480,32 @@ class UIManager {
       this.geminiStatusSuccess.classList.add('hidden');
       this.geminiStatusLocal.classList.remove('hidden');
     }
+
+    // Gist Sync fields
+    const { token, gistId } = state.getSyncCredentials();
+    document.getElementById('sync-token-input').value = token || '';
+    document.getElementById('sync-gist-id-input').value = gistId || '';
+
+    const syncStatusIdle = document.getElementById('sync-status-idle');
+    const syncStatusActive = document.getElementById('sync-status-active');
+
+    if (token) {
+      syncStatusIdle.classList.add('hidden');
+      syncStatusActive.classList.remove('hidden');
+      // Show gistId in badge text if present
+      if (gistId) {
+        syncStatusActive.innerHTML = `<i data-lucide="check-circle-2"></i> Synchro prête. Gist : <code>${gistId.substring(0, 8)}...</code>`;
+      } else {
+        syncStatusActive.innerHTML = `<i data-lucide="refresh-cw"></i> Prêt à créer le Gist de synchro.`;
+      }
+    } else {
+      syncStatusIdle.classList.remove('hidden');
+      syncStatusActive.classList.add('hidden');
+    }
+
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
   }
 
   // --- Modal Forms Management ---

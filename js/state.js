@@ -79,6 +79,8 @@ class AppState {
     this.categories = [];
     this.geminiApiKey = '';
     this.layoutMode = 'card';
+    this.syncToken = '';
+    this.syncGistId = '';
     
     this.loadFromStorage();
   }
@@ -90,12 +92,17 @@ class AppState {
       const storedCategories = localStorage.getItem('actio_categories') || localStorage.getItem('zentodo_categories');
       const storedKey = localStorage.getItem('actio_gemini_key') || localStorage.getItem('zentodo_gemini_key');
       const storedLayout = localStorage.getItem('actio_layout') || localStorage.getItem('zentodo_layout');
+      const storedSyncToken = localStorage.getItem('actio_sync_token');
+      const storedSyncGistId = localStorage.getItem('actio_sync_gist_id');
 
       if (storedLayout) {
         this.layoutMode = storedLayout;
       } else {
         this.layoutMode = 'card';
       }
+
+      if (storedSyncToken) this.syncToken = storedSyncToken;
+      if (storedSyncGistId) this.syncGistId = storedSyncGistId;
 
       if (storedTodos) {
         this.todos = JSON.parse(storedTodos);
@@ -142,7 +149,7 @@ class AppState {
 
   // --- CRUD Todos ---
   getTodos() {
-    return this.todos;
+    return this.todos.filter(t => !t.deleted);
   }
 
   getTodo(id) {
@@ -155,12 +162,13 @@ class AppState {
       title: todoData.title || 'Nouvelle tâche',
       description: todoData.description || '',
       type: todoData.type || 'quick',
-      status: 'pending',
+      status: todoData.status || 'pending',
       category: todoData.category || 'cat-personal',
       dueDate: todoData.dueDate || 'week',
       priority: todoData.priority || 'medium',
       subtasks: todoData.subtasks || [],
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      lastUpdated: Date.now()
     };
     
     this.todos.push(newTodo);
@@ -174,7 +182,8 @@ class AppState {
 
     this.todos[todoIndex] = {
       ...this.todos[todoIndex],
-      ...updatedFields
+      ...updatedFields,
+      lastUpdated: Date.now()
     };
     
     this.saveTodos();
@@ -182,10 +191,13 @@ class AppState {
   }
 
   deleteTodo(id) {
-    const initialLength = this.todos.length;
-    this.todos = this.todos.filter(t => t.id !== id);
+    const todo = this.getTodo(id);
+    if (!todo) return false;
+    
+    todo.deleted = true;
+    todo.lastUpdated = Date.now();
     this.saveTodos();
-    return this.todos.length < initialLength;
+    return true;
   }
 
   // --- Subtasks Logic ---
@@ -200,6 +212,7 @@ class AppState {
     };
 
     todo.subtasks.push(newSubtask);
+    todo.lastUpdated = Date.now();
     this.saveTodos();
     return newSubtask;
   }
@@ -213,8 +226,7 @@ class AppState {
 
     subtask.completed = !subtask.completed;
     
-    // Automatically update todo status if it's a quick task and all subtasks are finished?
-    // Usually better to let the user decide, but we must update the completion stats.
+    todo.lastUpdated = Date.now();
     this.saveTodos();
     return true;
   }
@@ -225,6 +237,7 @@ class AppState {
 
     const initialLength = todo.subtasks.length;
     todo.subtasks = todo.subtasks.filter(s => s.id !== subtaskId);
+    todo.lastUpdated = Date.now();
     this.saveTodos();
     return todo.subtasks.length < initialLength;
   }
@@ -234,6 +247,7 @@ class AppState {
     if (!todo) return false;
     
     todo.subtasks = newSubtasks;
+    todo.lastUpdated = Date.now();
     this.saveTodos();
     return true;
   }
@@ -280,8 +294,9 @@ class AppState {
 
   // --- Global Stats Helpers ---
   getStats() {
-    const total = this.todos.length;
-    const completed = this.todos.filter(t => t.status === 'completed').length;
+    const activeTodos = this.todos.filter(t => !t.deleted);
+    const total = activeTodos.length;
+    const completed = activeTodos.filter(t => t.status === 'completed').length;
     const active = total - completed;
     
     // Calculate global percentage based on all tasks, factoring in subtasks
@@ -289,7 +304,7 @@ class AppState {
     let totalPoints = 0;
     let completedPoints = 0;
 
-    this.todos.forEach(todo => {
+    activeTodos.forEach(todo => {
       if (todo.status === 'completed') {
         totalPoints += 1;
         completedPoints += 1;
@@ -361,11 +376,174 @@ class AppState {
     return this.layoutMode;
   }
 
+  saveSyncCredentials(token, gistId) {
+    this.syncToken = token;
+    this.syncGistId = gistId;
+    localStorage.setItem('actio_sync_token', token);
+    localStorage.setItem('actio_sync_gist_id', gistId);
+  }
+
+  getSyncCredentials() {
+    return {
+      token: this.syncToken,
+      gistId: this.syncGistId
+    };
+  }
+
+  // --- Cloud Gist Sync Logic ---
+  async syncWithCloud() {
+    if (!this.syncToken) {
+      throw new Error('Jeton GitHub manquant.');
+    }
+
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `token ${this.syncToken}`,
+      'Accept': 'application/vnd.github+json'
+    };
+
+    // 1. Create a new Gist if Gist ID is missing
+    if (!this.syncGistId) {
+      const response = await fetch('https://api.github.com/gists', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          description: 'Actio Cloud Sync Data',
+          public: false,
+          files: {
+            'actio_data.json': {
+              content: JSON.stringify({
+                todos: this.todos,
+                categories: this.categories,
+                lastSynced: Date.now()
+              }, null, 2)
+            }
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || 'Impossible de créer le Gist sur GitHub.');
+      }
+
+      const gist = await response.json();
+      this.saveSyncCredentials(this.syncToken, gist.id);
+      return { status: 'created', gistId: gist.id };
+    }
+
+    // 2. Fetch Gist if Gist ID exists
+    const response = await fetch(`https://api.github.com/gists/${this.syncGistId}`, {
+      method: 'GET',
+      headers
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        // Gist was deleted on GitHub, reset local Gist ID and recreate
+        this.saveSyncCredentials(this.syncToken, '');
+        return this.syncWithCloud();
+      }
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || 'Impossible de charger les données du Gist.');
+    }
+
+    const gist = await response.json();
+    const file = gist.files?.['actio_data.json']?.content;
+
+    if (!file) {
+      throw new Error('actio_data.json introuvable dans le Gist.');
+    }
+
+    let cloudData;
+    try {
+      cloudData = JSON.parse(file);
+    } catch (e) {
+      throw new Error('Format de données du Gist GitHub corrompu.');
+    }
+
+    // 3. Bidirectional merge
+    const mergedTodos = this.mergeTodos(this.todos, cloudData.todos || []);
+    const mergedCategories = this.mergeCategories(this.categories, cloudData.categories || []);
+
+    // Save locally
+    this.todos = mergedTodos;
+    this.categories = mergedCategories;
+    this.saveTodos();
+    this.saveCategories();
+
+    // 4. Update the Gist with merged final data
+    const updateResponse = await fetch(`https://api.github.com/gists/${this.syncGistId}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({
+        files: {
+          'actio_data.json': {
+            content: JSON.stringify({
+              todos: this.todos,
+              categories: this.categories,
+              lastSynced: Date.now()
+            }, null, 2)
+          }
+        }
+      })
+    });
+
+    if (!updateResponse.ok) {
+      const err = await updateResponse.json().catch(() => ({}));
+      throw new Error(err.message || 'Impossible de mettre à jour le Gist.');
+    }
+
+    return { status: 'synced', gistId: this.syncGistId };
+  }
+
+  mergeTodos(local, cloud) {
+    const todoMap = new Map();
+    
+    // Put cloud items
+    cloud.forEach(todo => {
+      todoMap.set(todo.id, todo);
+    });
+
+    // Merge local items
+    local.forEach(localTodo => {
+      const cloudTodo = todoMap.get(localTodo.id);
+      if (!cloudTodo) {
+        todoMap.set(localTodo.id, localTodo);
+      } else {
+        const localTime = localTodo.lastUpdated || localTodo.createdAt || 0;
+        const cloudTime = cloudTodo.lastUpdated || cloudTodo.createdAt || 0;
+        
+        if (localTime > cloudTime) {
+          todoMap.set(localTodo.id, localTodo);
+        }
+      }
+    });
+
+    return Array.from(todoMap.values());
+  }
+
+  mergeCategories(local, cloud) {
+    const catMap = new Map();
+    
+    cloud.forEach(cat => {
+      catMap.set(cat.id, cat);
+    });
+    
+    local.forEach(cat => {
+      catMap.set(cat.id, cat);
+    });
+
+    return Array.from(catMap.values());
+  }
+
   resetAll() {
     localStorage.removeItem('actio_todos');
     localStorage.removeItem('actio_categories');
     localStorage.removeItem('actio_gemini_key');
     localStorage.removeItem('actio_layout');
+    localStorage.removeItem('actio_sync_token');
+    localStorage.removeItem('actio_sync_gist_id');
     localStorage.removeItem('zentodo_todos');
     localStorage.removeItem('zentodo_categories');
     localStorage.removeItem('zentodo_gemini_key');
@@ -375,6 +553,8 @@ class AppState {
     this.categories = [...DEFAULT_CATEGORIES];
     this.geminiApiKey = '';
     this.layoutMode = 'card';
+    this.syncToken = '';
+    this.syncGistId = '';
     
     this.saveTodos();
     this.saveCategories();

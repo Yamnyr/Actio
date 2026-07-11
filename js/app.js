@@ -20,6 +20,14 @@ document.addEventListener('DOMContentLoaded', () => {
   bindEventDelegation();
   bindDragAndDrop();
   bindKeyboardShortcuts();
+
+  // 3. Auto sync if credentials exist
+  const creds = state.getSyncCredentials();
+  if (creds.token && creds.gistId) {
+    state.syncWithCloud()
+      .then(() => ui.renderAll())
+      .catch(err => console.warn('Synchro auto échouée au démarrage:', err));
+  }
 });
 
 // --- 1. Navigation Panel ---
@@ -388,6 +396,63 @@ function bindEventDelegation() {
     ui.renderAll();
     alert('Clé API Gemini enregistrée !');
   });
+
+  // Toggle Sync Token visibility
+  const syncTokenVisibilityBtn = document.getElementById('toggle-sync-token-visibility');
+  if (syncTokenVisibilityBtn) {
+    syncTokenVisibilityBtn.addEventListener('click', () => {
+      const tokenInput = document.getElementById('sync-token-input');
+      const icon = syncTokenVisibilityBtn.querySelector('i');
+      if (tokenInput.type === 'password') {
+        tokenInput.type = 'text';
+        icon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        tokenInput.type = 'password';
+        icon.setAttribute('data-lucide', 'eye');
+      }
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+    });
+  }
+
+  // Save Sync credentials
+  const btnSaveSyncCreds = document.getElementById('btn-save-sync-creds');
+  if (btnSaveSyncCreds) {
+    btnSaveSyncCreds.addEventListener('click', () => {
+      const token = document.getElementById('sync-token-input').value.trim();
+      const gistId = document.getElementById('sync-gist-id-input').value.trim();
+      state.saveSyncCredentials(token, gistId);
+      ui.renderAll();
+      alert('Identifiants de synchronisation enregistrés !');
+    });
+  }
+
+  // Trigger sync
+  const btnTriggerSync = document.getElementById('btn-trigger-sync');
+  if (btnTriggerSync) {
+    btnTriggerSync.addEventListener('click', async () => {
+      const icon = btnTriggerSync.querySelector('i');
+      
+      // UI loading state
+      btnTriggerSync.disabled = true;
+      if (icon) icon.classList.add('spin-icon');
+
+      try {
+        const result = await state.syncWithCloud();
+        alert(result.status === 'created' 
+          ? `Gist secret créé avec succès sur votre compte GitHub ! (ID: ${result.gistId}). Sauvegardez cet ID pour le renseigner sur vos autres appareils.` 
+          : 'Synchronisation cloud terminée ! Vos données sont fusionnées et à jour.'
+        );
+      } catch (err) {
+        alert(`Erreur de synchronisation : ${err.message}`);
+      } finally {
+        btnTriggerSync.disabled = false;
+        if (icon) icon.classList.remove('spin-icon');
+        ui.renderAll();
+      }
+    });
+  }
 
   document.getElementById('btn-export-data').addEventListener('click', () => {
     state.exportData();
