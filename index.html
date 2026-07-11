@@ -163,6 +163,25 @@
             </form>
           </div>
 
+          <!-- Mobile Column Selector Tabs -->
+          <div class="mobile-column-selector" id="mobile-column-selector">
+            <button class="mobile-column-tab active" data-target="today">
+              <i data-lucide="calendar-range"></i>
+              <span>Aujourd'hui</span>
+              <span class="tab-badge" id="badge-today">0</span>
+            </button>
+            <button class="mobile-column-tab" data-target="week">
+              <i data-lucide="calendar-days"></i>
+              <span>Semaine</span>
+              <span class="tab-badge" id="badge-week">0</span>
+            </button>
+            <button class="mobile-column-tab" data-target="later">
+              <i data-lucide="calendar"></i>
+              <span>Plus Tard</span>
+              <span class="tab-badge" id="badge-later">0</span>
+            </button>
+          </div>
+
           <!-- Grouped Lists (Today, Week, Later) -->
           <div class="tasks-groups-container">
             <div class="task-group-column" data-group="today">
@@ -473,6 +492,11 @@
       </linearGradient>
     </defs>
   </svg>
+
+  <!-- Mobile Floating Action Button -->
+  <button id="mobile-fab" class="mobile-fab" title="Créer une tâche ou un projet">
+    <i data-lucide="plus"></i>
+  </button>
 
   <!-- Application scripts -->
   <script type="module" src="js/state.js"></script>

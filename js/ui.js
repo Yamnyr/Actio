@@ -9,6 +9,7 @@ import { generateSubtasks } from './ai.js';
 let activeTab = 'quick';
 let selectedCategoryFilter = 'all';
 let currentDraggedTodoId = null;
+let activeMobileColumn = 'today'; // Added to track active column on mobile
 
 // Color Palette for Categories
 const PALETTE_COLORS = [
@@ -268,6 +269,36 @@ class UIManager {
     document.getElementById('count-today').textContent = todayTodos.length;
     document.getElementById('count-week').textContent = weekTodos.length;
     document.getElementById('count-later').textContent = laterTodos.length;
+
+    // Toggle active mobile columns
+    const columns = document.querySelectorAll('.task-group-column');
+    columns.forEach(col => {
+      const group = col.getAttribute('data-group');
+      if (group === activeMobileColumn) {
+        col.classList.add('active-mobile-col');
+      } else {
+        col.classList.remove('active-mobile-col');
+      }
+    });
+
+    // Update mobile selector active tabs
+    const mobileTabs = document.querySelectorAll('.mobile-column-tab');
+    mobileTabs.forEach(tab => {
+      const target = tab.getAttribute('data-target');
+      if (target === activeMobileColumn) {
+        tab.classList.add('active');
+      } else {
+        tab.classList.remove('active');
+      }
+    });
+
+    // Update mobile selector badges
+    const badgeToday = document.getElementById('badge-today');
+    const badgeWeek = document.getElementById('badge-week');
+    const badgeLater = document.getElementById('badge-later');
+    if (badgeToday) badgeToday.textContent = todayTodos.length;
+    if (badgeWeek) badgeWeek.textContent = weekTodos.length;
+    if (badgeLater) badgeLater.textContent = laterTodos.length;
   }
 
   renderTodoColumn(container, todos, categories) {
@@ -299,6 +330,43 @@ class UIManager {
         `;
       }
 
+      // Mobile Touch Actions for moving between planning lists
+      let mobileActionsHtml = '';
+      if (todo.dueDate === 'today') {
+        mobileActionsHtml = `
+          <div class="mobile-card-actions">
+            <button type="button" class="btn-touch-action btn-move-todo" data-todo-id="${todo.id}" data-target-date="week">
+              <i data-lucide="calendar-days"></i> Semaine
+            </button>
+            <button type="button" class="btn-touch-action btn-move-todo" data-todo-id="${todo.id}" data-target-date="later">
+              <i data-lucide="calendar"></i> Plus Tard
+            </button>
+          </div>
+        `;
+      } else if (todo.dueDate === 'week') {
+        mobileActionsHtml = `
+          <div class="mobile-card-actions">
+            <button type="button" class="btn-touch-action btn-move-todo" data-todo-id="${todo.id}" data-target-date="today">
+              <i data-lucide="calendar-range"></i> Aujourd'hui
+            </button>
+            <button type="button" class="btn-touch-action btn-move-todo" data-todo-id="${todo.id}" data-target-date="later">
+              <i data-lucide="calendar"></i> Plus Tard
+            </button>
+          </div>
+        `;
+      } else if (todo.dueDate === 'later') {
+        mobileActionsHtml = `
+          <div class="mobile-card-actions">
+            <button type="button" class="btn-touch-action btn-move-todo" data-todo-id="${todo.id}" data-target-date="today">
+              <i data-lucide="calendar-range"></i> Aujourd'hui
+            </button>
+            <button type="button" class="btn-touch-action btn-move-todo" data-todo-id="${todo.id}" data-target-date="week">
+              <i data-lucide="calendar-days"></i> Semaine
+            </button>
+          </div>
+        `;
+      }
+
       return `
         <div class="todo-card ${isCompleted ? 'completed' : ''}" 
              draggable="true" 
@@ -325,6 +393,8 @@ class UIManager {
             </span>
             ${progressIndicatorHtml}
           </div>
+
+          ${mobileActionsHtml}
 
           <!-- Quick Actions Hover -->
           <div class="todo-actions-hover">
@@ -751,6 +821,11 @@ class UIManager {
   changeCategoryFilter(catId) {
     selectedCategoryFilter = catId;
     this.renderAll();
+  }
+
+  changeMobileColumn(columnId) {
+    activeMobileColumn = columnId;
+    this.renderActiveView();
   }
 
   // --- Utilities ---

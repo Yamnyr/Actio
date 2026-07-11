@@ -48,6 +48,14 @@ function bindNavigationEvents() {
     });
   }
 
+  // Open modal from Mobile FAB
+  const mobileFab = document.getElementById('mobile-fab');
+  if (mobileFab) {
+    mobileFab.addEventListener('click', () => {
+      ui.openTodoModal();
+    });
+  }
+
   // Close modals
   document.querySelectorAll('.close-modal-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -105,6 +113,17 @@ function bindSearchAndFilters() {
       const nextLayout = currentLayout === 'list' ? 'card' : 'list';
       state.saveLayoutMode(nextLayout);
       ui.renderAll();
+    });
+  }
+
+  // Mobile Column Selector Tab Click
+  const mobileColumnSelector = document.getElementById('mobile-column-selector');
+  if (mobileColumnSelector) {
+    mobileColumnSelector.addEventListener('click', (e) => {
+      const tabButton = e.target.closest('.mobile-column-tab');
+      if (!tabButton) return;
+      const target = tabButton.getAttribute('data-target');
+      ui.changeMobileColumn(target);
     });
   }
 }
@@ -242,6 +261,17 @@ function bindEventDelegation() {
         state.deleteTodo(id);
         ui.renderAll();
       }
+      return;
+    }
+
+    // e. Click move todo (mobile touch shortcut)
+    const btnMoveTodo = e.target.closest('.btn-move-todo');
+    if (btnMoveTodo) {
+      e.stopPropagation();
+      const id = btnMoveTodo.getAttribute('data-todo-id');
+      const targetDate = btnMoveTodo.getAttribute('data-target-date');
+      state.updateTodo(id, { dueDate: targetDate });
+      ui.renderAll();
       return;
     }
 
