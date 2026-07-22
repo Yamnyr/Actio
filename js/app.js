@@ -342,6 +342,18 @@ function bindEventDelegation() {
     }
   });
 
+  // Change category color listener
+  document.addEventListener('change', (e) => {
+    if (e.target.classList.contains('category-color-input')) {
+      const catId = e.target.getAttribute('data-category-id');
+      const newColor = e.target.value;
+      if (catId && newColor) {
+        state.updateCategory(catId, { color: newColor });
+        ui.renderAll();
+      }
+    }
+  });
+
   // Modal Todo delete button click
   const btnDeleteTodoModal = document.getElementById('btn-delete-todo');
   btnDeleteTodoModal.addEventListener('click', () => {

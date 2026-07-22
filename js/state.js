@@ -279,6 +279,15 @@ class AppState {
     return newCategory;
   }
 
+  updateCategory(id, updates = {}) {
+    const cat = this.getCategory(id);
+    if (!cat) return false;
+    if (updates.name !== undefined && updates.name.trim()) cat.name = updates.name.trim();
+    if (updates.color !== undefined) cat.color = updates.color;
+    this.saveCategories();
+    return cat;
+  }
+
   deleteCategory(id) {
     // Cannot delete default categories or if not found
     if (this.categories.length <= 1) return false;

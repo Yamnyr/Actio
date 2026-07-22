@@ -551,15 +551,24 @@ class UIManager {
       return `
         <div class="category-row-card">
           <div class="category-row-info">
-            <span class="filter-color-dot" style="background-color: ${cat.color}; width: 14px; height: 14px;"></span>
+            <label class="category-color-label" title="Changer la couleur">
+              <span class="filter-color-dot" style="background-color: ${cat.color}; width: 16px; height: 16px; cursor: pointer;"></span>
+              <input type="color" class="category-color-input" data-category-id="${cat.id}" value="${cat.color}">
+            </label>
             <span class="category-name">${this.escapeHTML(cat.name)}</span>
             <span style="color: var(--text-muted); font-size: 0.8rem;">(${taskCount} tâches)</span>
           </div>
-          ${isDeleteAllowed ? `
-            <button class="btn-icon btn-delete-category" data-category-id="${cat.id}" title="Supprimer cette catégorie">
-              <i data-lucide="trash-2" style="width: 16px; height: 16px; color: var(--color-danger)"></i>
-            </button>
-          ` : ''}
+          <div class="category-row-actions" style="display: flex; gap: 6px; align-items: center;">
+            <label class="btn-icon category-color-btn" title="Changer la couleur" style="cursor: pointer;">
+              <i data-lucide="palette" style="width: 16px; height: 16px; color: var(--text-secondary);"></i>
+              <input type="color" class="category-color-input" data-category-id="${cat.id}" value="${cat.color}">
+            </label>
+            ${isDeleteAllowed ? `
+              <button class="btn-icon btn-delete-category" data-category-id="${cat.id}" title="Supprimer cette catégorie">
+                <i data-lucide="trash-2" style="width: 16px; height: 16px; color: var(--color-danger)"></i>
+              </button>
+            ` : ''}
+          </div>
         </div>
       `;
     }).join('');

@@ -152,14 +152,16 @@
                 <input type="text" id="quick-add-input" placeholder="Ajouter une tâche rapide pour cette semaine... (Entrée pour valider)" required autocomplete="off">
               </div>
               <div class="quick-add-options">
-                <select id="quick-add-category" class="add-select" title="Catégorie">
-                  <!-- Dynamic options -->
-                </select>
-                <select id="quick-add-priority" class="add-select" title="Priorité">
-                  <option value="low">Priorité Basse</option>
-                  <option value="medium" selected>Priorité Moyenne</option>
-                  <option value="high">Priorité Haute</option>
-                </select>
+                <div class="quick-add-selects-group">
+                  <select id="quick-add-category" class="add-select" title="Catégorie">
+                    <!-- Dynamic options -->
+                  </select>
+                  <select id="quick-add-priority" class="add-select" title="Priorité">
+                    <option value="low">Priorité Basse</option>
+                    <option value="medium" selected>Priorité Moyenne</option>
+                    <option value="high">Priorité Haute</option>
+                  </select>
+                </div>
                 <button type="submit" class="btn-primary-glow btn-add-task">
                   <i data-lucide="plus"></i>
                   <span>Ajouter</span>
@@ -215,7 +217,7 @@
         <!-- VIEW: LIFE PROJECTS -->
         <div id="view-projects-container" class="tab-view">
           <div class="projects-actions-header">
-            <p class="description-text">Les projets de vie structurent vos objectifs de long terme (ex: Reconversion professionnelle, Voyager au Japon). Ils permettent d'ajouter des sous-tâches détaillées générées par IA.</p>
+            <p class="description-text projects-intro-text">Les projets de vie structurent vos objectifs de long terme (ex: Reconversion professionnelle, Voyager au Japon). Ils permettent d'ajouter des sous-tâches détaillées générées par IA.</p>
             <button id="btn-open-new-project-modal" class="btn-primary-glow">
               <i data-lucide="folder-plus"></i>
               <span>Créer un Projet de Vie</span>
