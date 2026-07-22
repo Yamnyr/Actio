@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Actio - Liste de Tâches & Projets Avancés</title>
+  <title>DoIt - Liste de Tâches & Projets Avancés</title>
   <meta name="description" content="Une application de productivité hautement ergonomique pour gérer vos tâches quotidiennes et vos projets de vie à long terme.">
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -43,7 +43,7 @@
           <div class="logo-icon">
             <i data-lucide="check-circle-2"></i>
           </div>
-          <span class="logo-text">Actio</span>
+          <span class="logo-text">DoIt</span>
         </div>
       </div>
 
@@ -117,6 +117,11 @@
           <!-- Layout Toggle Button -->
           <button id="btn-toggle-layout" class="btn-icon-bg" title="Changer l'affichage (Grille / Liste)">
             <i data-lucide="layout-grid"></i>
+          </button>
+
+          <!-- Toggle Completed Tasks Button -->
+          <button id="btn-toggle-completed" class="btn-icon-bg" title="Masquer les tâches terminées">
+            <i data-lucide="eye"></i>
           </button>
 
           <!-- Quick Stat Circle -->
@@ -322,8 +327,6 @@
                   <i data-lucide="cloud-lightning"></i> Synchroniser
                 </button>
               </div>
-            </div>
-
             <div class="settings-card">
               <h3><i data-lucide="database" class="card-icon color-danger"></i> Gestion des Données</h3>
               <p class="card-text font-sm">Toutes vos données sont stockées localement dans le stockage du navigateur (`localStorage`). Vous pouvez exporter ou réinitialiser l'application.</p>
@@ -487,8 +490,8 @@
   <svg width="0" height="0" class="hidden-svg">
     <defs>
       <linearGradient id="accent-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#6366f1" />
-        <stop offset="100%" stop-color="#a855f7" />
+        <stop offset="0%" stop-color="#2563eb" />
+        <stop offset="100%" stop-color="#06b6d4" />
       </linearGradient>
     </defs>
   </svg>

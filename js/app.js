@@ -427,6 +427,16 @@ function bindEventDelegation() {
     alert('Clé API Gemini enregistrée !');
   });
 
+  // Toggle hide completed tasks button
+  const btnToggleCompleted = document.getElementById('btn-toggle-completed');
+  if (btnToggleCompleted) {
+    btnToggleCompleted.addEventListener('click', () => {
+      const hideCompleted = !state.getHideCompleted();
+      state.saveHideCompleted(hideCompleted);
+      ui.renderAll();
+    });
+  }
+
   // Toggle Sync Token visibility
   const syncTokenVisibilityBtn = document.getElementById('toggle-sync-token-visibility');
   if (syncTokenVisibilityBtn) {
@@ -514,7 +524,7 @@ function bindEventDelegation() {
   });
 
   document.getElementById('btn-reset-app').addEventListener('click', () => {
-    if (confirm('ATTENTION : Voulez-vous vraiment réinitialiser Actio ? Cette action va supprimer toutes vos tâches et restaurer les données d\'usine.')) {
+    if (confirm('ATTENTION : Voulez-vous vraiment réinitialiser DoIt ? Cette action va supprimer toutes vos tâches et restaurer les données d\'usine.')) {
       state.resetAll();
       ui.renderAll();
     }

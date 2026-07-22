@@ -1,7 +1,7 @@
 {
-  "name": "actio",
+  "name": "doit",
   "version": "1.0.0",
-  "description": "Actio - Advanced, ultra-ergonomic Todo list and Life Planner.",
+  "description": "DoIt - Advanced, ultra-ergonomic Todo list and Life Planner.",
   "main": "index.html",
   "scripts": {
     "dev": "vite",

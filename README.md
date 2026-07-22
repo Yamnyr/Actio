@@ -1,6 +1,6 @@
-# Actio ⚡
+# DoIt ⚡
 
-**Actio** (anciennement ZenTodo) est une application web de gestion de tâches et de planification de projets de vie, conçue pour allier une ergonomie ultra-fluide à un design moderne de type *glassmorphism*. 
+**DoIt** (anciennement Actio) est une application web de gestion de tâches et de planification de projets de vie, conçue pour allier une ergonomie ultra-fluide à un design moderne et personnalisable. 
 
 L'application est pensée pour être instantanée, esthétique et entièrement pilotable au clavier comme à la souris.
 
@@ -26,13 +26,13 @@ L'application est pensée pour être instantanée, esthétique et entièrement p
 
 ### 4. Confidentialité et Gestion des Données
 *   **100% Client-Side** : Vos données restent sur votre machine et ne transitent par aucun serveur externe. Vos clés et tâches sont stockées dans le `localStorage` de votre navigateur.
-*   **Export / Import** : Sauvegardez vos données dans un fichier `actio_export.json` ou importez-les pour changer de machine ou de navigateur.
+*   **Export / Import** : Sauvegardez vos données dans un fichier `doit_export.json` ou importez-les pour changer de machine ou de navigateur.
 
 ---
 
 ## 🛠️ Installation & Démarrage
 
-Actio est construit avec des technologies web natives (HTML5, CSS3, JavaScript ES modules) et utilise **Vite** comme serveur de développement local léger pour éviter les blocages CORS.
+DoIt est construit avec des technologies web natives (HTML5, CSS3, JavaScript ES modules) et utilise **Vite** comme serveur de développement local léger pour éviter les blocages CORS.
 
 ### Prérequis
 *   [Node.js](https://nodejs.org/) (version 18 ou supérieure recommandée)

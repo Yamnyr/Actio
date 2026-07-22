@@ -4,8 +4,8 @@
 
 // --- Default Categories Seed Data ---
 const DEFAULT_CATEGORIES = [
-  { id: 'cat-work', name: 'Travail', color: '#6366f1' },       // Indigo
-  { id: 'cat-personal', name: 'Personnel', color: '#a855f7' },  // Purple
+  { id: 'cat-work', name: 'Travail', color: '#2563eb' },       // Cobalt Blue
+  { id: 'cat-personal', name: 'Personnel', color: '#ff6b6b' },  // Coral
   { id: 'cat-health', name: 'Santé & Sport', color: '#10b981' },// Emerald
   { id: 'cat-learning', name: 'Apprentissage', color: '#06b6d4' }, // Cyan
   { id: 'cat-finance', name: 'Finances', color: '#f59e0b' }     // Amber
@@ -81,6 +81,8 @@ class AppState {
     this.layoutMode = 'card';
     this.syncToken = '';
     this.syncGistId = '';
+    this.theme = 'aurora';
+    this.hideCompleted = false;
     
     this.loadFromStorage();
   }
@@ -88,12 +90,16 @@ class AppState {
   // Load state from localStorage
   loadFromStorage() {
     try {
-      const storedTodos = localStorage.getItem('actio_todos') || localStorage.getItem('zentodo_todos');
-      const storedCategories = localStorage.getItem('actio_categories') || localStorage.getItem('zentodo_categories');
-      const storedKey = localStorage.getItem('actio_gemini_key') || localStorage.getItem('zentodo_gemini_key');
-      const storedLayout = localStorage.getItem('actio_layout') || localStorage.getItem('zentodo_layout');
-      const storedSyncToken = localStorage.getItem('actio_sync_token');
-      const storedSyncGistId = localStorage.getItem('actio_sync_gist_id');
+      const storedTodos = localStorage.getItem('doit_todos') || localStorage.getItem('actio_todos') || localStorage.getItem('zentodo_todos');
+      const storedCategories = localStorage.getItem('doit_categories') || localStorage.getItem('actio_categories') || localStorage.getItem('zentodo_categories');
+      const storedKey = localStorage.getItem('doit_gemini_key') || localStorage.getItem('actio_gemini_key') || localStorage.getItem('zentodo_gemini_key');
+      const storedLayout = localStorage.getItem('doit_layout') || localStorage.getItem('actio_layout') || localStorage.getItem('zentodo_layout');
+      const storedSyncToken = localStorage.getItem('doit_sync_token') || localStorage.getItem('actio_sync_token');
+      const storedSyncGistId = localStorage.getItem('doit_sync_gist_id') || localStorage.getItem('actio_sync_gist_id');
+      const storedHideCompleted = localStorage.getItem('doit_hide_completed') === 'true';
+
+      this.theme = 'aurora';
+      this.hideCompleted = storedHideCompleted;
 
       if (storedLayout) {
         this.layoutMode = storedLayout;
@@ -131,16 +137,16 @@ class AppState {
 
   // Save changes to localStorage
   saveTodos() {
-    localStorage.setItem('actio_todos', JSON.stringify(this.todos));
+    localStorage.setItem('doit_todos', JSON.stringify(this.todos));
   }
 
   saveCategories() {
-    localStorage.setItem('actio_categories', JSON.stringify(this.categories));
+    localStorage.setItem('doit_categories', JSON.stringify(this.categories));
   }
 
   saveGeminiKey(key) {
     this.geminiApiKey = key;
-    localStorage.setItem('actio_gemini_key', key);
+    localStorage.setItem('doit_gemini_key', key);
   }
 
   getGeminiKey() {
@@ -338,7 +344,7 @@ class AppState {
     
     const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
     
-    const exportFileDefaultName = 'actio_export_' + new Date().toISOString().slice(0,10) + '.json';
+    const exportFileDefaultName = 'doit_export_' + new Date().toISOString().slice(0,10) + '.json';
     
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);
@@ -354,7 +360,7 @@ class AppState {
         this.categories = data.categories;
         if (data.geminiApiKey) {
           this.geminiApiKey = data.geminiApiKey;
-          localStorage.setItem('actio_gemini_key', this.geminiApiKey);
+          localStorage.setItem('doit_gemini_key', this.geminiApiKey);
         }
         this.saveTodos();
         this.saveCategories();
@@ -369,18 +375,36 @@ class AppState {
 
   saveLayoutMode(mode) {
     this.layoutMode = mode;
-    localStorage.setItem('actio_layout', mode);
+    localStorage.setItem('doit_layout', mode);
   }
 
   getLayoutMode() {
     return this.layoutMode;
   }
 
+  saveTheme(theme) {
+    // Locked to aurora
+    this.theme = 'aurora';
+  }
+
+  getTheme() {
+    return 'aurora';
+  }
+
+  saveHideCompleted(hide) {
+    this.hideCompleted = hide;
+    localStorage.setItem('doit_hide_completed', hide);
+  }
+
+  getHideCompleted() {
+    return this.hideCompleted;
+  }
+
   saveSyncCredentials(token, gistId) {
     this.syncToken = token;
     this.syncGistId = gistId;
-    localStorage.setItem('actio_sync_token', token);
-    localStorage.setItem('actio_sync_gist_id', gistId);
+    localStorage.setItem('doit_sync_token', token);
+    localStorage.setItem('doit_sync_gist_id', gistId);
   }
 
   getSyncCredentials() {
@@ -408,10 +432,10 @@ class AppState {
         method: 'POST',
         headers,
         body: JSON.stringify({
-          description: 'Actio Cloud Sync Data',
+          description: 'DoIt Cloud Sync Data',
           public: false,
           files: {
-            'actio_data.json': {
+            'doit_data.json': {
               content: JSON.stringify({
                 todos: this.todos,
                 categories: this.categories,
@@ -449,10 +473,10 @@ class AppState {
     }
 
     const gist = await response.json();
-    const file = gist.files?.['actio_data.json']?.content;
+    const file = gist.files?.['doit_data.json']?.content || gist.files?.['actio_data.json']?.content;
 
     if (!file) {
-      throw new Error('actio_data.json introuvable dans le Gist.');
+      throw new Error('doit_data.json ou actio_data.json introuvable dans le Gist.');
     }
 
     let cloudData;
@@ -478,13 +502,15 @@ class AppState {
       headers,
       body: JSON.stringify({
         files: {
-          'actio_data.json': {
+          'doit_data.json': {
             content: JSON.stringify({
               todos: this.todos,
               categories: this.categories,
               lastSynced: Date.now()
             }, null, 2)
-          }
+          },
+          // Supprimer l'ancien fichier de synchronisation s'il existe
+          'actio_data.json': gist.files?.['actio_data.json'] ? null : undefined
         }
       })
     });
@@ -538,6 +564,14 @@ class AppState {
   }
 
   resetAll() {
+    localStorage.removeItem('doit_todos');
+    localStorage.removeItem('doit_categories');
+    localStorage.removeItem('doit_gemini_key');
+    localStorage.removeItem('doit_layout');
+    localStorage.removeItem('doit_sync_token');
+    localStorage.removeItem('doit_sync_gist_id');
+    localStorage.removeItem('doit_theme');
+    localStorage.removeItem('doit_hide_completed');
     localStorage.removeItem('actio_todos');
     localStorage.removeItem('actio_categories');
     localStorage.removeItem('actio_gemini_key');
@@ -555,6 +589,8 @@ class AppState {
     this.layoutMode = 'card';
     this.syncToken = '';
     this.syncGistId = '';
+    this.theme = 'aurora';
+    this.hideCompleted = false;
     
     this.saveTodos();
     this.saveCategories();

@@ -13,8 +13,8 @@ let activeMobileColumn = 'today'; // Added to track active column on mobile
 
 // Color Palette for Categories
 const PALETTE_COLORS = [
-  '#6366f1', // Indigo
-  '#a855f7', // Purple
+  '#2563eb', // Cobalt Blue
+  '#ff6b6b', // Coral
   '#ec4899', // Pink
   '#f43f5e', // Rose
   '#ef4444', // Red
@@ -29,6 +29,7 @@ const PALETTE_COLORS = [
 class UIManager {
   constructor() {
     this.initElements();
+    this.applyTheme(state.getTheme());
   }
 
   initElements() {
@@ -173,6 +174,22 @@ class UIManager {
     // Re-populate select boxes
     this.populateCategoryDropdowns(categories);
 
+    // Update completed filter button status
+    const btnToggleCompleted = document.getElementById('btn-toggle-completed');
+    if (btnToggleCompleted) {
+      const hideCompleted = state.getHideCompleted();
+      const icon = btnToggleCompleted.querySelector('i');
+      if (icon) {
+        icon.setAttribute('data-lucide', hideCompleted ? 'eye-off' : 'eye');
+      }
+      btnToggleCompleted.title = hideCompleted ? "Afficher les tâches terminées" : "Masquer les tâches terminées";
+      if (hideCompleted) {
+        btnToggleCompleted.classList.add('active');
+      } else {
+        btnToggleCompleted.classList.remove('active');
+      }
+    }
+
     // Show/hide and update layout toggle button
     if (this.btnToggleLayout) {
       if (activeTab === 'quick' || activeTab === 'projects') {
@@ -246,6 +263,11 @@ class UIManager {
     let filteredTodos = todos;
     if (selectedCategoryFilter !== 'all') {
       filteredTodos = filteredTodos.filter(todo => todo.category === selectedCategoryFilter);
+    }
+
+    // Filter by completion status
+    if (state.getHideCompleted()) {
+      filteredTodos = filteredTodos.filter(todo => todo.status !== 'completed');
     }
 
     // Filter by search query
@@ -428,6 +450,11 @@ class UIManager {
     let filteredProjects = projects;
     if (selectedCategoryFilter !== 'all') {
       filteredProjects = filteredProjects.filter(p => p.category === selectedCategoryFilter);
+    }
+
+    // Filter by completion status
+    if (state.getHideCompleted()) {
+      filteredProjects = filteredProjects.filter(p => p.status !== 'completed');
     }
 
     if (searchQuery) {
@@ -826,6 +853,10 @@ class UIManager {
   changeMobileColumn(columnId) {
     activeMobileColumn = columnId;
     this.renderActiveView();
+  }
+
+  applyTheme(theme) {
+    document.body.classList.add('theme-aurora');
   }
 
   // --- Utilities ---
